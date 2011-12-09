@@ -1,8 +1,8 @@
 from collections import defaultdict
 from re import VERBOSE
 from funcparserlib.lexer import make_tokenizer, Spec
-from funcparserlib.parser import maybe, many, eof, skip, fwd, name_parser_vars
-from funcparserlib.contrib.common import const, n, op, op_, sometok
+from funcparserlib.parser import many, eof, skip
+from funcparserlib.contrib.common import sometok
 
 
 ENCODING = 'utf-8'
