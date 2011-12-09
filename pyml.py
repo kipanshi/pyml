@@ -30,15 +30,6 @@ specs = [
 ]
 tokenizer = make_tokenizer(specs)
 
-test = """
-div.big .orange
-    form method="POST" #main_form
-        table
-            tr
-                td.first "Hello World!"
-                td.second "Hello World!"
-                td.third "Hello World!"
-"""
 class Eol(object):
     def __init__(self, data):
         pass
@@ -132,4 +123,14 @@ def compile(pyml_text, spaces=False):
         for tag in tgs:
             yield tag.close()
 
-print ''.join(compile(test, True))
+if __name__ == '__main__':
+    test = """
+div.big .orange
+    form method="POST" #main_form
+        table
+            tr
+                td.first "Hello World!"
+                td.second "Hello World!"
+                td.third "Hello World!"
+"""
+    print ''.join(compile(test, True))
