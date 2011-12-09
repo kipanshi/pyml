@@ -94,7 +94,7 @@ complete = many(eol|tag|string|space) + eof
 def compile(pyml_text, spaces=False):
     parsed = complete.parse(list(tokenizer(pyml_text)))[0]
     start = True
-    last_spaces_len = 0
+    lens = [0]
     tags = [[]]
     for d in parsed:
         if isinstance(d, Tag):
@@ -102,15 +102,20 @@ def compile(pyml_text, spaces=False):
             tags[-1].append(d)
         elif isinstance(d, Spaces) and start:
             start = False
-            if last_spaces_len < d.len:
+            if lens[-1] < d.len:
                 tags.append([])
-                last_spaces_len = d.len
-            elif last_spaces_len >= d.len:
+                lens.append(d.len)
+            elif lens[-1] >= d.len:
+                if spaces:
+                    yield ' ' * lens[-1]
                 for tag in tags[-1]:
                     yield tag.close()
+                if spaces:
+                    yield '\n'
                 tags[-1] = []
-                if last_spaces_len > d.len:
+                if lens[-1] > d.len:
                     tags.pop(-1)
+                    lens.pop(-1)
             if spaces:
                 yield ' ' * d.len
         elif isinstance(d, Eol):
@@ -119,9 +124,13 @@ def compile(pyml_text, spaces=False):
                 yield '\n'
         elif isinstance(d, basestring):
             yield d
-    for tgs in reversed(tags):
+    for tgs, l in reversed(zip(tags, lens)):
+        if spaces:
+            yield ' ' * l
         for tag in tgs:
             yield tag.close()
+        if spaces:
+            yield '\n'
 
 if __name__ == '__main__':
     test = """
