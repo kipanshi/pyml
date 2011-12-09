@@ -39,7 +39,7 @@ div.big .orange
                 td.second "Hello World!"
                 td.third "Hello World!"
 """
-class Eof(object):
+class Eol(object):
     def __init__(self, data):
         pass
 
@@ -62,6 +62,9 @@ class Tag(object):
         return '<{name} id="{ids}" class="{classes}" {attrs}>'.format(
             name=self.name,
             ids=ids, classes=classes, attrs=join_all('Attribute'))
+
+    def close(self):
+        return '</{0}>'.format(self.name)
 
 
 class Class(object):
@@ -86,7 +89,7 @@ class Attribute(object):
     def render(self):
         return '{s.name}="{s.value}"'.format(s=self)
 
-eol = sometok('eol') >> Eof
+eol = sometok('eol') >> Eol
 space = sometok('space') >> Spaces
 string = sometok("string") >> (lambda s: s[1:-1])
 name = sometok('name') >> (lambda s: s)
@@ -96,8 +99,37 @@ identificator = sometok('id') >> Id
 tag = name + many(cls|identificator|attr|skip(space)) >> Tag
 complete = many(eol|tag|string|space) + eof
 
-parsed = complete.parse(list(tokenizer(test)))[0]
 
-for d in parsed:
-    if hasattr(d, 'render'):
-        print d.render()
+def compile(pyml_text, spaces=False):
+    parsed = complete.parse(list(tokenizer(pyml_text)))[0]
+    start = True
+    last_spaces_len = 0
+    tags = [[]]
+    for d in parsed:
+        if isinstance(d, Tag):
+            yield d.render()
+            tags[-1].append(d)
+        elif isinstance(d, Spaces) and start:
+            start = False
+            if last_spaces_len < d.len:
+                tags.append([])
+                last_spaces_len = d.len
+            elif last_spaces_len >= d.len:
+                for tag in tags[-1]:
+                    yield tag.close()
+                tags[-1] = []
+                if last_spaces_len > d.len:
+                    tags.pop(-1)
+            if spaces:
+                yield ' ' * d.len
+        elif isinstance(d, Eol):
+            start = True
+            if spaces:
+                yield '\n'
+        elif isinstance(d, basestring):
+            yield d
+    for tgs in reversed(tags):
+        for tag in tgs:
+            yield tag.close()
+
+print ''.join(compile(test, True))
