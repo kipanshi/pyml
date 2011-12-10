@@ -127,7 +127,7 @@ def compile(pyml_text, spaces=False):
     for tgs, l in reversed(zip(tags, lens)):
         if spaces:
             yield ' ' * l
-        for tag in tgs:
+        for tag in reversed(tgs):
             yield tag.close()
         if spaces:
             yield '\n'
@@ -136,8 +136,7 @@ if __name__ == '__main__':
     test = """
 div.big .orange
     form method="POST" #main_form
-        table
-            tr
+        table tr
                 td.first "Hello World!"
                 td.second "Hello World!"
                 td.third "Hello World!"
